@@ -17,7 +17,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.projectahirpam.data.database.AppDatabase
+import com.example.projectahirpam.data.entity.BarangEntity
 import com.example.projectahirpam.data.entity.KategoriEntity
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 import com.example.projectahirpam.utils.UserSession
@@ -258,5 +263,89 @@ fun KategoriScreen(
             }
         )
     }
+}
+
+@Composable
+fun BarangManagementContent(
+    kategori: KategoriEntity,
+    onBackToList: () -> Unit,
+    barangDao: com.example.projectahirpam.data.dao.BarangDao,
+    userId: Int
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getInstance(context) }
+    val stokMasukDao = remember { db.stokMasukDao() }
+    val stokKeluarDao = remember { db.stokKeluarDao() }
+
+    var search by remember { mutableStateOf("") }
+    var barangList by remember { mutableStateOf<List<BarangEntity>>(emptyList()) }
+
+    // collect search with debounce
+    LaunchedEffect(kategori.id) {
+        snapshotFlow { search }
+            .map { it.trim() }
+            .distinctUntilChanged()
+            .debounce(300)
+            .collectLatest { q ->
+                if (q.isBlank()) {
+                    barangDao.getAllByKategori(kategori.id).collectLatest { barangList = it }
+                } else {
+                    barangDao.searchInKategori(kategori.id, q).collectLatest { barangList = it }
+                }
+            }
+    }
+
+    var editingBarang by remember { mutableStateOf<BarangEntity?>(null) }
+    var showForm by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf<BarangEntity?>(null) }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        OutlinedTextField(
+            value = search,
+            onValueChange = { search = it },
+            label = { Text("Cari barang", color = Color.White) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFFBB86FC),
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = Color(0xFFBB86FC),
+                unfocusedLabelColor = Color.Gray
+            )
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(barangList) { barang ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF2D2D2D).copy(alpha = 0.8f)
+                    )
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(barang.namaBarang, color = Color.White)
+                            Text("Stok: ${barang.jumlah}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        }
+                    }
+                }
+            }
+            if (barangList.isEmpty()) {
+                item {
+                    Text("Belum ada barang", modifier = Modifier.padding(8.dp), color = Color.White)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+    }
+
+    // detail kategori menjadi read-only: tidak ada dialog tambah/edit/hapus barang
 }
 
