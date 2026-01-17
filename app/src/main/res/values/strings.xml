@@ -1,0 +1,48 @@
+<resources>
+    <!-- App -->
+    <string name="app_name">MiniCam Studio</string>
+
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Konfirmasi Password</string>
+    <string name="logout">Logout</string>
+
+    <!-- Auth Message -->
+    <string name="login_failed">Username atau password salah</string>
+    <string name="register_success">Registrasi berhasil</string>
+    <string name="register_failed">Registrasi gagal</string>
+    <string name="max_user_reached">Maksimal 2 akun dalam satu perangkat</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard">Dashboard</string>
+    <string name="menu_barang">Data Barang</string>
+    <string name="menu_kategori">Kategori</string>
+    <string name="menu_stok_masuk">Stok Masuk</string>
+    <string name="menu_stok_keluar">Stok Keluar</string>
+    <string name="menu_laporan">Laporan</string>
+
+    <!-- Barang -->
+    <string name="tambah_barang">Tambah Barang</string>
+    <string name="edit_barang">Edit Barang</string>
+    <string name="hapus_barang">Hapus Barang</string>
+    <string name="nama_barang">Nama Barang</string>
+    <string name="kategori_barang">Kategori</string>
+    <string name="jumlah_stok">Jumlah Stok</string>
+
+    <!-- Validation -->
+    <string name="error_empty_field">Field tidak boleh kosong</string>
+    <string name="stok_tidak_cukup">Stok tidak mencukupi</string>
+
+    <!-- Sorting & Search -->
+    <string name="search_barang">Cari barang</string>
+    <string name="sort_stok_terendah">Stok Terendah</string>
+    <string name="sort_az">A - Z</string>
+
+    <!-- Button -->
+    <string name="simpan">Simpan</string>
+    <string name="batal">Batal</string>
+    <string name="hapus">Hapus</string>
+</resources>
