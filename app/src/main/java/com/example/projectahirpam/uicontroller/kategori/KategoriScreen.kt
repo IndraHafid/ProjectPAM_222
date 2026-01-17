@@ -21,6 +21,7 @@ import com.example.projectahirpam.data.entity.BarangEntity
 import com.example.projectahirpam.data.entity.KategoriEntity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -349,3 +350,46 @@ fun BarangManagementContent(
     // detail kategori menjadi read-only: tidak ada dialog tambah/edit/hapus barang
 }
 
+@Composable
+fun BarangFormDialog(
+    kategori: KategoriEntity,
+    barang: BarangEntity?,
+    onDismiss: () -> Unit,
+    onSave: (String, Int) -> Unit,
+    barangDao: com.example.projectahirpam.data.dao.BarangDao
+) {
+    var nama by remember { mutableStateOf(barang?.namaBarang ?: "") }
+    var jumlahText by remember { mutableStateOf(barang?.jumlah?.toString() ?: "0") }
+    var error by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (barang == null) "Tambah Barang" else "Edit Barang") },
+        text = {
+            Column {
+                OutlinedTextField(value = nama, onValueChange = { nama = it }, label = { Text("Nama Barang") })
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = jumlahText, onValueChange = { jumlahText = it }, label = { Text("Jumlah") })
+                if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val trimmed = nama.trim()
+                val jumlah = jumlahText.toIntOrNull() ?: 0
+                if (trimmed.isBlank()) { error = "Nama tidak boleh kosong"; return@TextButton }
+                // optional: check duplicate name
+                scope.launch {
+                    val count = barangDao.countByNameInKategori(kategori.id, trimmed)
+                    if (count > 0 && (barang == null || barang.namaBarang != trimmed)) {
+                        error = "Nama barang sudah ada di kategori ini"
+                        return@launch
+                    }
+                    onSave(trimmed, jumlah)
+                }
+            }) { Text("Simpan") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } }
+    )
+}
